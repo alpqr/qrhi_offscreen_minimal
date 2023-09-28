@@ -1,6 +1,7 @@
 #include <QGuiApplication>
 #include <QImage>
 #include <QFile>
+#include <QOffscreenSurface>
 #include <rhi/qrhi.h>
 
 int main(int argc, char **argv)
@@ -8,6 +9,7 @@ int main(int argc, char **argv)
     QGuiApplication app(argc, argv);
 
     std::unique_ptr<QRhi> rhi;
+    std::unique_ptr<QOffscreenSurface> fallbackSurface;
 #if defined(Q_OS_WIN)
     QRhiD3D12InitParams params;
     rhi.reset(QRhi::create(QRhi::D3D12, &params));
@@ -22,7 +24,10 @@ int main(int argc, char **argv)
         params.inst = &inst;
         rhi.reset(QRhi::create(QRhi::Vulkan, &params));
     } else {
-        qFatal("Failed to create Vulkan instance");
+        fallbackSurface.reset(QRhiGles2InitParams::newFallbackSurface());
+        QRhiGles2InitParams params;
+        params.fallbackSurface = fallbackSurface.get();
+        rhi.reset(QRhi::create(QRhi::OpenGLES2, &params));
     }
 #endif
     if (rhi)

@@ -14,8 +14,6 @@ target_link_libraries(testapp PRIVATE
 )
 
 qt_add_shaders(testapp "shaders"
-    PRECOMPILE
-    OPTIMIZED
     PREFIX
         "/shaders"
     FILES
