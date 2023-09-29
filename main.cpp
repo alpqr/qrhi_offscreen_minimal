@@ -23,13 +23,15 @@ int main(int argc, char **argv)
         QRhiVulkanInitParams params;
         params.inst = &inst;
         rhi.reset(QRhi::create(QRhi::Vulkan, &params));
-    } else {
+    }
+#endif
+    if (!rhi) {
         fallbackSurface.reset(QRhiGles2InitParams::newFallbackSurface());
         QRhiGles2InitParams params;
         params.fallbackSurface = fallbackSurface.get();
         rhi.reset(QRhi::create(QRhi::OpenGLES2, &params));
     }
-#endif
+
     if (rhi)
         qDebug() << rhi->backendName() << rhi->driverInfo();
     else
@@ -64,13 +66,13 @@ int main(int argc, char **argv)
 
     std::unique_ptr<QRhiBuffer> ubuf(rhi->newBuffer(QRhiBuffer::Dynamic,
                                                     QRhiBuffer::UniformBuffer,
-                                                    64 + 4));
+                                                    64));
     ubuf->create();
 
     std::unique_ptr<QRhiShaderResourceBindings> srb(rhi->newShaderResourceBindings());
     srb->setBindings({
         QRhiShaderResourceBinding::uniformBuffer(0,
-                                                 QRhiShaderResourceBinding::VertexStage | QRhiShaderResourceBinding::FragmentStage,
+                                                 QRhiShaderResourceBinding::VertexStage,
                                                  ubuf.get())
     });
     srb->create();
@@ -114,8 +116,8 @@ int main(int argc, char **argv)
         cb->setGraphicsPipeline(ps.get());
         cb->setViewport({ 0, 0, 1280, 720 });
         cb->setShaderResources();
-        const QRhiCommandBuffer::VertexInput vbufBinding(vbuf.get(), 0);
-        cb->setVertexInput(0, 1, &vbufBinding);
+        const QRhiCommandBuffer::VertexInput vbufBindings[] = { { vbuf.get(), 0 } };
+        cb->setVertexInput(0, 1, vbufBindings);
         cb->draw(3);
         QRhiReadbackResult readbackResult;
         u = rhi->nextResourceUpdateBatch();
