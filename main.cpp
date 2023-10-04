@@ -8,6 +8,9 @@ int main(int argc, char **argv)
 {
     QGuiApplication app(argc, argv);
 
+#if QT_CONFIG(vulkan)
+    QVulkanInstance inst;
+#endif
     std::unique_ptr<QRhi> rhi;
     std::unique_ptr<QOffscreenSurface> fallbackSurface;
 #if defined(Q_OS_WIN)
@@ -17,7 +20,6 @@ int main(int argc, char **argv)
     QRhiMetalInitParams params;
     rhi.reset(QRhi::create(QRhi::Metal, &params));
 #elif QT_CONFIG(vulkan)
-    QVulkanInstance inst;
     inst.setExtensions(QRhiVulkanInitParams::preferredInstanceExtensions());
     if (inst.create()) {
         QRhiVulkanInitParams params;
